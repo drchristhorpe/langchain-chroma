@@ -14,12 +14,13 @@ import toml
 
 # load config
 config = toml.load('config.toml')
+content_folder = config["CONTENT_FOLDER"]
 
 # set env vars for openai
 os.environ["OPENAI_API_KEY"] = config["OPENAI_API_KEY"]
 
 # load the documents contained in the content folder
-loader = DirectoryLoader('content', glob='./*.txt', loader_cls=TextLoader)
+loader = DirectoryLoader(content_folder, glob='./*.txt', loader_cls=TextLoader)
 
 print ('loading documents')
 documents = loader.load()
