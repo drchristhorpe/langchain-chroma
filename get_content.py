@@ -1,16 +1,24 @@
+from typing import List, Tuple, Union
+
+import json
+import toml
+
 import requests
 from bs4 import BeautifulSoup
-from typing import List
 
 
-def scrape_text_to_file(url: str, filename: str) -> str:
+def scrape_text_to_file(url: str, filename: str) -> Tuple[str, Union[str, None]]:
     """
     Scrape the text of a webpage into a text file. 
     Only get the text contained in a div with id="block-bsi-content".
 
-    Parameters:
-    url (str): The URL of the webpage to scrape.
-    filename (str): The name of the file to write the text to.
+    Args:
+        url (str): The URL of the webpage to scrape.
+        filename (str): The name of the file to write the text to.
+
+    Returns:
+        str: The text scraped from the webpage.
+        str: The title of the webpage.
     """
 
     # Send a GET request to the webpage
@@ -29,7 +37,14 @@ def scrape_text_to_file(url: str, filename: str) -> str:
     with open(filename, 'w') as f:
         f.write(text)
     
-    return text
+    title = soup.find('title')
+
+    if title is not None:
+        title = title.string
+    else:
+        title = None
+
+    return text, title
 
 
 def scrape_urls(url: str, string: str, exclude:List=None, level:str='one') -> List[str]:
@@ -91,7 +106,9 @@ homepage_stem = 'https://www.immunology.org'
 homepage_url = f"{homepage_stem}/bitesized-immunology"
 string = '/public-information/bitesized-immunology'
 exclude = ['login','site-map']
-content_folder = 'content'
+
+config = toml.load('config.toml')
+content_folder = config["CONTENT_FOLDER"]
 
 content_urls = []
 
@@ -123,9 +140,15 @@ for url in content_urls:
     content_page_url = f"{homepage_stem}{url}"
 
     # add the filename to the filenames dict, which maps to the url
-    filenames[filename] = content_page_url
+    filenames[filename] = {}
     print (f"Scraping {content_page_url} to {filename}")
 
-    text = scrape_text_to_file(content_page_url, filename)
+    text, title = scrape_text_to_file(content_page_url, filename)
+
+    filenames[filename]['url'] = content_page_url
+    filenames[filename]['title'] = title
 
     print (f"Length of text scraped = {len(text)}")
+
+with open(f"{content_folder}/filename_map.json", "w") as f:
+    json.dump(filenames, f, indent=4)
