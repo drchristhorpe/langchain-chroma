@@ -7,7 +7,18 @@ from langchain.vectorstores import Chroma
 
 import toml
 import os
+import json
 
+
+# load config
+config = toml.load('config.toml')
+content_folder = config["CONTENT_FOLDER"]
+
+filename_map = {}
+
+# load the filename map from the content folder
+with open(f"{content_folder}/filename_map.json", "r") as f:
+    filename_map = json.load(f)
 
 def setup_query() -> RetrievalQA:
     """
@@ -16,10 +27,6 @@ def setup_query() -> RetrievalQA:
     Returns:
         RetrievalQA: The retriever
     """
-
-    # load config
-    config = toml.load('config.toml')
-
     # set env vars for openai
     os.environ["OPENAI_API_KEY"] = config["OPENAI_API_KEY"]
 
@@ -76,11 +83,19 @@ def respond_to_query(query) -> Dict:
     llm_response = qa_chain(query)
 
     # add the answer to the answer object
-    answer['llm'] = llm_response['result']
+    answer['llm_response'] = llm_response['result']
+
+    source_list = []
+
+    # get the sources from the source documents in the llm response
+    source_list = list(set([document.metadata['source'] for document in llm_response["source_documents"] if document.metadata['source'] is not None and document.metadata['source']]))
 
     # add the sources to the answer object
-    answer['sources'] = [source.metadata['source'] for source in llm_response["source_documents"] if source.metadata['source'] is not None]
+    answer['sources'] = source_list
 
+    # add the urls to the answer object, these are mapped from the sources (which are text files scraped from the urls)
+    answer['links'] = [filename_map[source] for source in source_list]
+    
     # return the answer object
     return answer
 
