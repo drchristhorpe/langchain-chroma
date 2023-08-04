@@ -12,9 +12,9 @@ toml = "*"
 openai = "*"
 tiktoken = "*"
 beautifulsoup4 = "*"
+flask = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.8"
 python_full_version = "3.8.8"
