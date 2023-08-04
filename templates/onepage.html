@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<section class="">
+    <div class="grid-container">
+      <div class="column-full-width">
+        <div class="inner">
+          <h1 class="heading-extra-large vertical-spacing-bottom vertical-spacing-top">Hello from the unofficial "Ask BSI Bitesize Immunology"</h1>
+          <p>
+              <div class="vertical-spacing-bottom-0-25">
+                This is just a fun little test project to understand a bit more about how you can make custom applications to answer questions relating to specific content using Langchain, ChromaDB and OpenAI.
+              </div>
+              <div class="vertical-spacing-bottom-0-25">
+                It uses text content from the British Society for Immunology's Bitesize Immunology website, which is a great resource for immunology students. This text is under copyright, which is why this experiment is not made publicly available.
+              </div>
+              <div class="vertical-spacing-bottom-0-25">
+                You can ask a question relating to basic immunology, and if the answer is in the website, you'll get a summary and links to the relevant page in BSI Bitesize Immunology.
+            </div>
+            <hr>
+            <form method="GET" action="/answer" >
+              <label for="question" class="inline-label">Your question</label>
+              <input type="text" class="text-input" name="question" value="{{question}}"/>
+              <input type="submit" class="button-input" value="Ask" />
+            </form>
+            {% if answer %}
+            <p class="vertical-spacing-top ">{{question}}?</p>
+            <p class="heading-medium vertical-spacing-bottom">"{{answer.llm_response.strip()}}"</p>
+            {% endif %}
+            <p>
+              For more information see:
+              {% for link in answer.links %}
+                <div><a href="{{link.url}}">{{link.title}}</a></div>
+              {% endfor %}
+            </p>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}
